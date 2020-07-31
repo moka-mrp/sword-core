@@ -61,4 +61,5 @@ type LogConfig struct {
 type ApiConfig struct {
 	Host string
 	Port int
+	Debug bool //是否是debug模式
 }
