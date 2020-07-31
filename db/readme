@@ -1,0 +1,3 @@
+注入资源的步骤:
+1.创建一个实现Provider接口的提供者,如 db/provider.go
+2.资源本身的连接、创建、销毁，如db/db.go (连接资源必须有Close方法，这个方法会被provider中的Close遍历触发的)
