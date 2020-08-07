@@ -179,76 +179,53 @@ func (mp *MultiPool) Append(key string, value string) (int, error) {
 }
 
 
-//func (mp *MultiPool) SetXX(key string, value interface{}) (bool, error) {
-//	return isOKString(redis.String(mp.Do(DefaultPool,"SET", key, value, "XX")))
-//}
-//
-
-
-//func (mp *MultiPool) BitOpAnd(destKey string, keys ...interface{}) (int, error) {
-//	args := make([]interface{}, 0)
-//	args = append(args, "AND", destKey)
-//	args = append(args, keys...)
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
-//}
-//
-//func (mp *MultiPool) BitOpOr(destKey string, keys ...interface{}) (int, error) {
-//	args := make([]interface{}, 0)
-//	args = append(args, "OR", destKey)
-//	args = append(args, keys...)
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
-//}
-//
-//func (mp *MultiPool) BitOpXor(destKey string, keys ...interface{}) (int, error) {
-//	args := make([]interface{}, 0)
-//	args = append(args, "XOR", destKey)
-//	args = append(args, keys...)
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
-//}
-//
-//func (mp *MultiPool) BitOpNot(destKey, key string) (int, error) {
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", "NOT", destKey, key))
-//}
-//
-//func (mp *MultiPool) BitPos(key string, bit int64, offsets ...int64) (int, error) {
-//	switch len(offsets) {
-//	case 0:
-//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit))
-//	case 1:
-//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0]))
-//	case 2:
-//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0], offsets[1]))
-//	default:
-//		return 0, errWrongArguments
-//	}
-//}
-//
-
-
-
-
-
-
-//func (mp *MultiPool) BitCount(key string, offsets ...int64) (int, error) {
-//	switch len(offsets) {
-//	case 0:
-//		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key))
-//	case 2:
-//		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key, offsets[0], offsets[1]))
-//	default:
-//		return 0, errWrongArguments
-//	}
-//}
-
-
-
-
-
-
-
-
 //------------------------List链表类型操作--------------------------------------------------------------------------
-//在key对应list的头部（左边）添加字符串元素
+//一般认为左头右尾
+
+//1.移出并获取列表的第一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+//@author sam@2020-08-07 17:55:29
+func (mp *MultiPool) BLPop(args ...interface{}) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"BLPOP", args...))
+}
+
+//2.移出并获取列表的最后一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+//@author sam@2020-08-07 20:18:06
+func (mp *MultiPool) BRPop(args ...interface{}) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"BRPOP", args...))
+}
+
+
+//3.从列表中弹出一个值，将弹出的元素插入到另外一个列表中并返回它； 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+//@author sam@2020-08-07 20:30:57
+func (mp *MultiPool) BRPopLPush(source, destination string, timeout uint64) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"BRPOPLPUSH", source, destination, timeout))
+}
+
+//4.通过索引获取列表中的元素
+//@author sam@2020-08-07 20:31:09
+func (mp *MultiPool) LIndex(key string, index int64) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"LINDEX", key, index))
+}
+
+//5.在列表的元素前或者后插入元素
+//@author  sam@2020-08-07 20:32:32
+func (mp *MultiPool) LInsert(key string, op string, pivot, value interface{}) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"LINSERT", key, op, pivot, value))
+}
+
+//6.获取列表长度
+//@author sam@2020-08-07 16:33:05
+func (mp *MultiPool) LLen(key string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"LLEN", key))
+}
+
+//7.移出并获取列表的第一个元素
+//@author sam@2020-08-07 16:31:25
+func (mp *MultiPool) LPop(key string) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"LPOP", key))
+}
+
+//8.将一个或多个值插入到列表头部
 //@author sam@2020-08-07 16:30:40
 func (mp *MultiPool) LPush(key string, values ...interface{}) (int, error) {
 	args := make([]interface{}, 0)
@@ -256,7 +233,49 @@ func (mp *MultiPool) LPush(key string, values ...interface{}) (int, error) {
 	args = append(args, values...)
 	return redis.Int(mp.Do(DefaultPool,"LPUSH", args...))
 }
-//在尾部（右边）添加
+
+//9.将一个值插入到已存在的列表头部
+//@author sam@2020-08-07 20:42:43
+func (mp *MultiPool) LPushX(key string, value interface{}) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"LPUSHX", key, value))
+}
+
+//10.获取列表指定范围内的元素
+//@author  sam@2020-08-07 16:33:46
+func (mp *MultiPool) LRange(key string, start, stop int64) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"LRANGE", key, start, stop))
+}
+
+
+//11.移除列表元素
+func (mp *MultiPool) LRem(key string, count int64, value interface{}) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"LREM", key, count, value))
+}
+
+//12.通过索引设置列表元素的值
+func (mp *MultiPool) LSet(key string, index int64, value interface{}) (bool, error) {
+	return isOKString(redis.String(mp.Do(DefaultPool,"LSET", key, index, value)))
+}
+
+//13.对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除。
+//@author sam@2020-08-07 16:35:30
+func (mp *MultiPool) LTrim(key string, start, stop int64) (bool, error) {
+	return isOKString(redis.String(mp.Do(DefaultPool,"LTRIM", key, start, stop)))
+}
+
+//14.移除列表的最后一个元素，返回值为移除的元素
+//@author sam@2020-08-07 16:31:47
+func (mp *MultiPool) RPop(key string) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"RPOP", key))
+}
+
+//15.移除列表的最后一个元素，并将该元素添加到另一个列表并返回
+//@author sam@2020-08-07 20:57:15
+func (mp *MultiPool) RPopLPush(source, destination string) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"RPOPLPUSH", source, destination))
+}
+
+//16.在列表中添加一个或多个值,在尾部（右边）添加
 //@author sam@2020-08-07 16:31:03
 func (mp *MultiPool) RPush(key string, values ...interface{}) (int, error) {
 	args := make([]interface{}, 0)
@@ -265,32 +284,12 @@ func (mp *MultiPool) RPush(key string, values ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"RPUSH", args...))
 }
 
-//在头部（左边）删除
-//@author sam@2020-08-07 16:31:25
-func (mp *MultiPool) LPop(key string) (string, error) {
-	return redis.String(mp.Do(DefaultPool,"LPOP", key))
-}
-//从key对应的list的尾部（右边）删除一个元素，并返回删除的元素
-//@author sam@2020-08-07 16:31:47
-func (mp *MultiPool) RPop(key string) (string, error) {
-	return redis.String(mp.Do(DefaultPool,"RPOP", key))
-}
-//返回key对应list的长度，key不存在返回0，如果key对应类型不是list返回错误
-//@author sam@2020-08-07 16:33:05
-func (mp *MultiPool) LLen(key string) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"LLEN", key))
+
+//17.为已存在的列表添加值
+func (mp *MultiPool) RPushX(key string, value interface{}) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"RPUSHX", key, value))
 }
 
-//返回指定区间内的元素，下标从0开始
-//@author  sam@2020-08-07 16:33:46
-func (mp *MultiPool) LRange(key string, start, stop int64) ([]string, error) {
-	return redis.Strings(mp.Do(DefaultPool,"LRANGE", key, start, stop))
-}
-//截取list,保留指定区间内元素,类似址操作
-//@author sam@2020-08-07 16:35:30
-func (mp *MultiPool) LTrim(key string, start, stop int64) (bool, error) {
-	return isOKString(redis.String(mp.Do(DefaultPool,"LTRIM", key, start, stop)))
-}
 
 //-----------------------Set集合类型操作-----------------------------------------------------------------------------
 
@@ -527,4 +526,57 @@ func (mp *MultiPool) PFMerge(dest string, keys ...interface{}) (bool, error) {
 	args = append(args, dest)
 	args = append(args, keys...)
 	return isOKString(redis.String(mp.Do(DefaultPool,"PFMERGE", args...)))
+}
+//----------------------------- 位相关运算 --------------------------------------------
+
+//func (mp *MultiPool) BitOpAnd(destKey string, keys ...interface{}) (int, error) {
+//	args := make([]interface{}, 0)
+//	args = append(args, "AND", destKey)
+//	args = append(args, keys...)
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
+//}
+//
+//func (mp *MultiPool) BitOpOr(destKey string, keys ...interface{}) (int, error) {
+//	args := make([]interface{}, 0)
+//	args = append(args, "OR", destKey)
+//	args = append(args, keys...)
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
+//}
+//
+//func (mp *MultiPool) BitOpXor(destKey string, keys ...interface{}) (int, error) {
+//	args := make([]interface{}, 0)
+//	args = append(args, "XOR", destKey)
+//	args = append(args, keys...)
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
+//}
+//
+//func (mp *MultiPool) BitOpNot(destKey, key string) (int, error) {
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", "NOT", destKey, key))
+//}
+//
+//func (mp *MultiPool) BitPos(key string, bit int64, offsets ...int64) (int, error) {
+//	switch len(offsets) {
+//	case 0:
+//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit))
+//	case 1:
+//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0]))
+//	case 2:
+//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0], offsets[1]))
+//	default:
+//		return 0, errWrongArguments
+//	}
+//}
+//
+
+
+
+func (mp *MultiPool) BitCount(key string, offsets ...int64) (int, error) {
+	switch len(offsets) {
+	case 0:
+		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key))
+	case 2:
+		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key, offsets[0], offsets[1]))
+	default:
+		return 0, errWrongArguments
+	}
 }
