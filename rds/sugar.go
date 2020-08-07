@@ -58,7 +58,7 @@ func (mp *MultiPool) RawCommand(command string, args ...interface{}) (interface{
 
 
 //----------------String字符串类型操作 -----------------------------------------------------
-//设置一个key
+//1.设置指定 key 的值
 //@author sam@2020-04-09 16:48:38
 func (mp *MultiPool) Set(key string, value interface{}) (bool, error) {
 	//返回值的类型是interface{}
@@ -66,72 +66,185 @@ func (mp *MultiPool) Set(key string, value interface{}) (bool, error) {
 	return isOKString(redis.String(mp.Do(DefaultPool,"SET", key, value)))
 }
 
-//获取某个key当前的值，然后再赋值新的值
-//@author sam@2020-07-31 10:01:24
-func (mp *MultiPool) GetSet(key string, value interface{}) (string, error) {
-	return redis.String(mp.Do(DefaultPool,"GETSET", key, value))
-}
-
-//mset  key1 value1   key2 value2 ...  一次设置多个key的值
-//@author sam@2020-07-31 10:13:35
-func (mp *MultiPool) MSet(pairs ...interface{}) (bool, error) {
-	return isOKString(redis.String(mp.Do(DefaultPool,"MSET", pairs...)))
-}
-
-//Redis Msetnx 命令用于所有给定 key 都不存在时，同时设置一个或多个 key-value 对。
-//当所有 key 都成功设置，返回 1 。 如果所有给定 key 都设置失败(至少有一个 key 已经存在)，那么返回 0 。
-//@author sam@2020-07-31 10:15:00
-func (mp *MultiPool) MSetNX(pairs ...interface{}) (bool, error) {
-	return redis.Bool(mp.Do(DefaultPool,"MSETNX", pairs...))
-}
-
-
-//get 一个key
+//2.获取指定 key 的值。
 //@author sam@2020-07-31 10:01:42
 func (mp *MultiPool) Get(key string) (string, error) {
 	//将返回的接口值转成字符串
 	return redis.String(mp.Do(DefaultPool,"GET", key))
 }
 
-//mget   key1   key2  ... 一次获取多个key的值
+//3.返回 key 中字符串值的子字符
+//@author sam@2020-08-07 17:04:35
+func (mp *MultiPool) GetRange(key string, start, end int64) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"GETRANGE", key, start, end))
+}
+
+//4.将给定 key 的值设为 value ，并返回 key 的旧值(old value)
+//@author sam@2020-07-31 10:01:24
+func (mp *MultiPool) GetSet(key string, value interface{}) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"GETSET", key, value))
+}
+//5.对 key 所储存的字符串值，获取指定偏移量上的位(bit)
+//@author sam@2020-08-07 17:06:22
+func (mp *MultiPool) GetBit(key string, offset int64) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"GETBIT", key, offset))
+}
+
+
+//6.获取所有(一个或多个)给定 key 的值。
 //@author sam@2020-07-31 10:18:06
 func (mp *MultiPool) MGet(keys ...interface{}) ([]string, error) {
 	return redis.Strings(mp.Do(DefaultPool,"MGET", keys...))
 }
 
-// 对key的值做++操作，并返回新值
+//7.对 key 所储存的字符串值，设置或清除指定偏移量上的位(bit)
+func (mp *MultiPool) SetBit(key string, offset int64, value int) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"SETBIT", key, offset, value))
+}
+
+//8.将值 value 关联到 key ，并将 key 的过期时间设为 seconds (以秒为单位)。
+//@author sam@2020-08-07 17:11:54
+func (mp *MultiPool) SetEX(key string, value interface{}, seconds int64) (bool, error) {
+	return isOKString(redis.String(mp.Do(DefaultPool,"SET", key, value, "EX", seconds)))
+	//return isOKString(redis.String(mp.Do(DefaultPool,"SETEX", key,seconds,value)))
+}
+
+//9.只有在 key 不存在时设置 key 的值(分布式锁常用)
+//@author sam@2020-08-07 17:14:35
+func (mp *MultiPool) SetNX(key string, value interface{}) (bool, error) {
+	return redis.Bool(mp.Do(DefaultPool,"SETNX", key, value))
+}
+//10.用 value 参数覆写给定 key 所储存的字符串值，从偏移量 offset 开始。
+//@author sam@2020-08-07 17:17:40
+func (mp *MultiPool) SetRange(key string, offset int64, value string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"SETRANGE", key, offset, value))
+}
+
+//11.返回 key 所储存的字符串值的长度。
+//@author sam@2020-08-07 17:18:18
+func (mp *MultiPool) StrLen(key string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"STRLEN", key))
+}
+
+//12.同时设置一个或多个 key-value 对。
+//@author sam@2020-07-31 10:13:35
+func (mp *MultiPool) MSet(pairs ...interface{}) (bool, error) {
+	return isOKString(redis.String(mp.Do(DefaultPool,"MSET", pairs...)))
+}
+
+//13.同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
+//@author sam@2020-07-31 10:15:00
+func (mp *MultiPool) MSetNX(pairs ...interface{}) (bool, error) {
+	return redis.Bool(mp.Do(DefaultPool,"MSETNX", pairs...))
+}
+
+//14.这个命令和 SETEX 命令相似，但它以毫秒为单位设置 key 的生存时间，而不是像 SETEX 命令那样，以秒为单位。
+
+func (mp *MultiPool) SetPX(key string, value interface{}, milliseconds int64) (bool, error) {
+	return isOKString(redis.String(mp.Do(DefaultPool,"SET", key, value, "PX", milliseconds)))
+	//return isOKString(redis.String(mp.Do(DefaultPool,"PSETEX", key,milliseconds,value)))
+}
+
+//15.将 key 中储存的数字值增一。
 //@author sam@2020-07-31 10:22:55
 func (mp *MultiPool) Incr(key string) (int, error) {
 	return mp.IncrBy(key, 1)
 }
-// 每次加指定的值
+//16.将 key 所储存的值加上给定的增量值（increment）
 //@author sam@2020-07-31 10:23:21
 func (mp *MultiPool) IncrBy(key string, value int64) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"INCRBY", key, value))
 }
-//为 key 中所储存的值加上指定的浮点数增量值。
-//如果 key 不存在，那么 INCRBYFLOAT 会先将 key 的值设为 0 ，再执行加法操作。
+//17.将 key 所储存的值加上给定的浮点增量值（increment）
 //@author sam@2020-07-31 10:24:54
 func (mp *MultiPool) IncrByFloat(key string, value float64) (float64, error) {
 	return redis.Float64(mp.Do(DefaultPool,"INCRBYFLOAT", key, value))
 }
 
-//对key的值做--操作，并返回新值
+//18.将 key 中储存的数字值减一
 //@author sam@2020-07-31 10:25:30
 func (mp *MultiPool) Decr(key string) (int, error) {
 	return mp.DecrBy(key, 1)
 }
 
-//每次减指定的值
+//19.key 所储存的值减去给定的减量值（decrement）
 //@author  sam@2020-07-31 10:26:09
 func (mp *MultiPool) DecrBy(key string, value int64) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"DECRBY", key, value))
 }
-//给指定的key的字符串追加value，就是拼接啦，类似php中的.
+//20.如果 key 已经存在并且是一个字符串， APPEND 命令将指定的 value 追加到该 key 原来值（value）的末尾。
 //@author sam@2020-07-31 10:26:48
 func (mp *MultiPool) Append(key string, value string) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"APPEND", key, value))
 }
+
+
+//func (mp *MultiPool) SetXX(key string, value interface{}) (bool, error) {
+//	return isOKString(redis.String(mp.Do(DefaultPool,"SET", key, value, "XX")))
+//}
+//
+
+
+//func (mp *MultiPool) BitOpAnd(destKey string, keys ...interface{}) (int, error) {
+//	args := make([]interface{}, 0)
+//	args = append(args, "AND", destKey)
+//	args = append(args, keys...)
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
+//}
+//
+//func (mp *MultiPool) BitOpOr(destKey string, keys ...interface{}) (int, error) {
+//	args := make([]interface{}, 0)
+//	args = append(args, "OR", destKey)
+//	args = append(args, keys...)
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
+//}
+//
+//func (mp *MultiPool) BitOpXor(destKey string, keys ...interface{}) (int, error) {
+//	args := make([]interface{}, 0)
+//	args = append(args, "XOR", destKey)
+//	args = append(args, keys...)
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
+//}
+//
+//func (mp *MultiPool) BitOpNot(destKey, key string) (int, error) {
+//	return redis.Int(mp.Do(DefaultPool,"BITOP", "NOT", destKey, key))
+//}
+//
+//func (mp *MultiPool) BitPos(key string, bit int64, offsets ...int64) (int, error) {
+//	switch len(offsets) {
+//	case 0:
+//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit))
+//	case 1:
+//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0]))
+//	case 2:
+//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0], offsets[1]))
+//	default:
+//		return 0, errWrongArguments
+//	}
+//}
+//
+
+
+
+
+
+
+//func (mp *MultiPool) BitCount(key string, offsets ...int64) (int, error) {
+//	switch len(offsets) {
+//	case 0:
+//		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key))
+//	case 2:
+//		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key, offsets[0], offsets[1]))
+//	default:
+//		return 0, errWrongArguments
+//	}
+//}
+
+
+
+
+
+
 
 
 //------------------------List链表类型操作--------------------------------------------------------------------------
@@ -389,26 +502,6 @@ func (mp *MultiPool) HVals(key string) ([]string, error) {
 func (mp *MultiPool) HLen(key string) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"HLEN", key))
 }
-
-//---------------------- 位操作---------------------------------------------------------------------------------------
-func (mp *MultiPool) GetBit(key string, offset int64) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"GETBIT", key, offset))
-}
-func (mp *MultiPool) SetBit(key string, offset int64, value int) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"SETBIT", key, offset, value))
-}
-
-func (mp *MultiPool) BitCount(key string, offsets ...int64) (int, error) {
-	switch len(offsets) {
-	case 0:
-		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key))
-	case 2:
-		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key, offsets[0], offsets[1]))
-	default:
-		return 0, errWrongArguments
-	}
-}
-
 //---------------------  HyperLogLog  (基数统计)---------------------------
 
 //添加指定元素到 HyperLogLog 中
