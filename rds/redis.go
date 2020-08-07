@@ -5,6 +5,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/moka-mrp/sword-core/config"
 	"sync"
+	"time"
 )
 
 
@@ -102,9 +103,9 @@ func newConn(conf config.RedisConfig)(*redis.Pool,error){
 		Dial: func() (redis.Conn, error) { // 连接redis的方法
 			addr := fmt.Sprintf("%s:%d", conf.Host, getPortOrDefault(conf.Port))
 			conn, err :=redis.Dial("tcp", addr,
-				redis.DialConnectTimeout(conf.ConnectTimeout),
-				redis.DialReadTimeout(conf.ReadTimeout),
-				redis.DialWriteTimeout(conf.WriteTimeout))
+				redis.DialConnectTimeout(conf.ConnectTimeout * time.Second),
+				redis.DialReadTimeout(conf.ReadTimeout * time.Second),
+				redis.DialWriteTimeout(conf.WriteTimeout * time.Second))
 			if err != nil {
 				fmt.Println("Dial err=",err)
 				return conn, err
@@ -137,7 +138,7 @@ func newConn(conf config.RedisConfig)(*redis.Pool,error){
 		pool.MaxActive = conf.MaxActive
 	}
 	if conf.IdleTimeout >0{
-		pool.IdleTimeout = conf.IdleTimeout
+		pool.IdleTimeout = conf.IdleTimeout * time.Second
 	}
 
 	return pool,nil

@@ -18,10 +18,10 @@ func init() {
 		MaxIdle:        10,
 		MaxActive:       50,
 		Wait:           true,
-		//IdleTimeout:    0,
-		//ConnectTimeout: 0,
-		//ReadTimeout:    0,
-		//WriteTimeout:   0,
+		IdleTimeout:    180,
+		ConnectTimeout: 3,
+		ReadTimeout:    3,
+		WriteTimeout:   3,
 	}
 
 	conf["arch"]=config.RedisConfig{
