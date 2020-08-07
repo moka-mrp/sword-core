@@ -10,7 +10,7 @@ var conf config.RedisMultiConfig
 
 func init() {
 	conf=make(config.RedisMultiConfig,2)
-	conf["default"]=config.RedisConfig{
+	conf["Default"]=config.RedisConfig{
 		Host:           "127.0.0.1",
 		Port:           6379,
 		Password:       "root",
@@ -24,7 +24,7 @@ func init() {
 		WriteTimeout:   3,
 	}
 
-	conf["arch"]=config.RedisConfig{
+	conf["Arch"]=config.RedisConfig{
 		Host:           "127.0.0.1",
 		Port:           6379,
 		Password:       "root",
@@ -59,9 +59,9 @@ func TestGetSet(t *testing.T) {
 
      //指明池子的增查删
 
-	b3,err:=pools.AliasSet("arch","name3","alias")
+	b3,err:=pools.AliasSet("Arch","name3","alias")
 	fmt.Println(b3,err)
-	b4,err:=pools.AliasGet("arch","name3")
+	b4,err:=pools.AliasGet("Arch","name3")
 	fmt.Println(b4,err)
 
 

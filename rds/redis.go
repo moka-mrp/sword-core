@@ -6,12 +6,14 @@ import (
 	"github.com/moka-mrp/sword-core/config"
 	"sync"
 	"time"
+	"errors"
 )
 
 
 var (
 	ErrNil = redis.ErrNil
-	DefaultPool= "default"
+	DefaultPool= "Default"
+    errWrongArguments error = errors.New("wrong number of arugments")
 )
 //-------------------------多集合连接池结构体-----------------------
 
