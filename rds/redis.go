@@ -12,7 +12,7 @@ import (
 
 var (
 	ErrNil = redis.ErrNil
-	DefaultPool= "Default"
+	DefaultPool= "default"
     errWrongArguments error = errors.New("wrong number of arugments")
 )
 //-------------------------多集合连接池结构体-----------------------
