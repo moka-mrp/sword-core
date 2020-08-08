@@ -10,51 +10,60 @@ import (
 
 
 //---------------------公共系列---------------------------------------------
-//判断是否存在某个key，一次传递多个的时候，只要有一个存在就返回1
+
+//1.删除一个key
+//@author  sam@2020-07-31 09:54:50
+func (mp *MultiPool) Del(keys ...interface{}) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"DEL", keys...))
+}
+
+//2.判断是否存在某个key，一次传递多个的时候，只要有一个存在就返回1
 //@author sam@2020-07-31 10:04:48
 func (mp *MultiPool) Exists(key ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"EXISTS", key...))
 }
-//设置某个key的过期时间
+//3.设置某个key的过期时间
 //@author sam@2020-07-31 10:05:46
 func (mp *MultiPool) Expire(key string, expiration int64) (bool, error) {
 	return redis.Bool(mp.Do(DefaultPool,"EXPIRE", key, expiration))
 }
-//设置某个key在哪个时间戳点过期
+//4.设置某个key在哪个时间戳点过期
 //@author sam@2020-07-31 10:06:21
 func (mp *MultiPool) ExpireAt(key string, tm int64) (bool, error) {
 	return redis.Bool(mp.Do(DefaultPool,"EXPIREAT", key, tm))
 }
 
-//当 key 不存在时，返回 -2 。 当 key 存在但没有设置剩余生存时间时，返回 -1 。 否则，以秒为单位，返回 key 的剩余生存时间。
-//@author sam@2020-07-31 10:09:44
-func (mp *MultiPool) TTL(key string) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"TTL", key))
-}
-//当 key 不存在时，返回 -2 。 当 key 存在但没有设置剩余生存时间时，返回 -1 。 否则，以毫秒为单位，返回 key 的剩余生存时间。
+
+//5.当 key 不存在时，返回 -2 。 当 key 存在但没有设置剩余生存时间时，返回 -1 。 否则，以毫秒为单位，返回 key 的剩余生存时间。
 //@author sam@2020-07-31 10:11:39
 func (mp *MultiPool) PTTL(key string) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"PTTL", key))
 }
 
-//判断某个key的类型
+
+//6.当 key 不存在时，返回 -2 。 当 key 存在但没有设置剩余生存时间时，返回 -1 。 否则，以秒为单位，返回 key 的剩余生存时间。
+//@author sam@2020-07-31 10:09:44
+func (mp *MultiPool) TTL(key string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"TTL", key))
+}
+
+
+//7.发送原生命令,对服务器执行任何通用命令
+//@author sam@2020-08-07 14:32:28
+func (mp *MultiPool) RawCommand(command string, args ...interface{}) (interface{}, error) {
+	return mp.Do(DefaultPool,command, args...)
+}
+
+
+//8.判断某个key的类型
 //@author sam@2020-07-31 10:10:44
 func (mp *MultiPool) Type(key string) (string, error) {
 	return redis.String(mp.Do(DefaultPool,"TYPE", key))
 }
 
 
-//删除一个key
-//@author  sam@2020-07-31 09:54:50
-func (mp *MultiPool) Del(keys ...interface{}) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"DEL", keys...))
-}
 
-//发送原生命令,对服务器执行任何通用命令
-//@author sam@2020-08-07 14:32:28
-func (mp *MultiPool) RawCommand(command string, args ...interface{}) (interface{}, error) {
-	return mp.Do(DefaultPool,command, args...)
-}
+
 
 
 //----------------String字符串类型操作 -----------------------------------------------------
@@ -178,6 +187,19 @@ func (mp *MultiPool) Append(key string, value string) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"APPEND", key, value))
 }
 
+//21.统计字符串被设置为1的bit数
+//@author sam@2020-08-08 11:09:12
+func (mp *MultiPool) BitCount(key string, offsets ...int64) (int, error) {
+	switch len(offsets) {
+	case 0:
+		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key))
+	case 2:
+		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key, offsets[0], offsets[1]))
+	default:
+		return 0, errWrongArguments
+	}
+}
+
 
 //------------------------List链表类型操作--------------------------------------------------------------------------
 //一般认为左头右尾
@@ -293,8 +315,7 @@ func (mp *MultiPool) RPushX(key string, value interface{}) (int, error) {
 
 //-----------------------Set集合类型操作-----------------------------------------------------------------------------
 
-//添加一个或多个string元素到key对应的set集合中，成功返回1
-//如果元素已经在集合中，返回0，key对应的set不存在返回错误哦
+//1.向集合添加一个或多个成员
 //@author sam@2020-08-07 15:41:51
 func (mp *MultiPool) SAdd(key string, members ...interface{}) (int, error) {
 	args := make([]interface{}, 0)
@@ -303,7 +324,74 @@ func (mp *MultiPool) SAdd(key string, members ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"SADD", args...))
 }
 
-//从key对应set中移除给定单个或者多个元素，成功返回1
+//2.获取集合的成员数
+//@author sam@2020-08-07 15:59:04
+func (mp *MultiPool) SCard(key string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"SCARD", key))
+}
+
+//3.返回第一个集合与其他集合之间的差异。
+//@author sam@2020-08-07 16:07:05
+func (mp *MultiPool) SDiff(keys ...interface{}) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"SDIFF", keys...))
+}
+
+//4.返回给定所有集合的差集并存储在 destination 中
+//@author sam@2020-08-08 09:44:20
+func (mp *MultiPool) SDiffStore(destination string, keys ...interface{}) (int, error) {
+	args := make([]interface{}, 0)
+	args = append(args, destination)
+	args = append(args, keys...)
+	return redis.Int(mp.Do(DefaultPool,"SDIFFSTORE", args...))
+}
+
+//5.返回给定所有集合的交集
+//@author sam@2020-08-07 16:03:50
+func (mp *MultiPool) SInter(keys ...interface{}) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"SINTER", keys...))
+}
+
+//6.返回给定所有集合的交集并存储在 destination 中
+//@author sam@2020-08-08 09:46:56
+func (mp *MultiPool) SInterStore(destination string, keys ...interface{}) (int, error) {
+	args := make([]interface{}, 0)
+	args = append(args, destination)
+	args = append(args, keys...)
+	return redis.Int(mp.Do(DefaultPool,"SINTERSTORE", args...))
+}
+
+
+//7.判断 member 元素是否是集合 key 的成员
+//@author sam@2020-08-07 16:01:52
+func (mp *MultiPool) SIsMember(key string, member interface{}) (bool, error) {
+	return redis.Bool(mp.Do(DefaultPool,"SISMEMBER", key, member))
+}
+
+//8.返回集合中的所有成员
+//@author sam@2020-08-07 16:07:49
+func (mp *MultiPool) SMembers(key string) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"SMEMBERS", key))
+}
+
+//9.将 member 元素从 source 集合移动到 destination 集合
+//@author sam@2020-08-07 15:59:52
+func (mp *MultiPool) SMove(source, destination string, member interface{}) (bool, error) {
+	return redis.Bool(mp.Do(DefaultPool,"SMOVE", source, destination, member))
+}
+
+//10.移除并返回集合中的一个随机元素
+//@author sam@2020-08-08 09:57:19
+func (mp *MultiPool) SPop(key string) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"SPOP", key))
+}
+
+//11.返回集合中一个或多个随机数
+//@author  sam@2020-08-08 10:00:56
+func (mp *MultiPool) SRandMember(key string) (string, error) {
+	return redis.String(mp.Do("SRANDMEMBER", key))
+}
+
+//12.移除集合中一个或多个成员
 //@author sam@2020-08-07 15:52:45
 func (mp *MultiPool) SRem(key string, members ...interface{}) (int, error) {
 	args := make([]interface{}, 0)
@@ -311,54 +399,28 @@ func (mp *MultiPool) SRem(key string, members ...interface{}) (int, error) {
 	args = append(args, members...)
 	return redis.Int(mp.Do(DefaultPool,"SREM", args...))
 }
-
-//从source对应set中移除member并添加到destination对应的set中
-//@author sam@2020-08-07 15:59:52
-func (mp *MultiPool) SMove(source, destination string, member interface{}) (bool, error) {
-	return redis.Bool(mp.Do(DefaultPool,"SMOVE", source, destination, member))
-}
-
-//返回set的元素个数
-//@author sam@2020-08-07 15:59:04
-func (mp *MultiPool) SCard(key string) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"SCARD", key))
-}
-
-//判断member是否在set中
-//@author sam@2020-08-07 16:01:52
-func (mp *MultiPool) SIsMember(key string, member interface{}) (bool, error) {
-	return redis.Bool(mp.Do(DefaultPool,"SISMEMBER", key, member))
-}
-
-
-//返回所有给定key的交集  sinter     key1     key2  ...
-//@author sam@2020-08-07 16:03:50
-func (mp *MultiPool) SInter(keys ...interface{}) ([]string, error) {
-	return redis.Strings(mp.Do(DefaultPool,"SINTER", keys...))
-}
-
-//返回所有给定key的并集 sunion    key1    key2 ...
+//13.返回所有给定集合的并集
 //@author sam@2020-08-07 16:06:37
 func (mp *MultiPool) SUnion(keys ...interface{}) ([]string, error) {
 	return redis.Strings(mp.Do(DefaultPool,"SUNION", keys...))
 }
 
-//返回所有给定key的差集  sdiff        key1     key2 ...
-//@author sam@2020-08-07 16:07:05
-func (mp *MultiPool) SDiff(keys ...interface{}) ([]string, error) {
-	return redis.Strings(mp.Do(DefaultPool,"SDIFF", keys...))
+//14.所有给定集合的并集存储在 destination 集合中
+func (mp *MultiPool) SUnionStore(destionation string, keys ...interface{}) (int, error) {
+	args := make([]interface{}, 0)
+	args = append(args, destionation)
+	args = append(args, keys...)
+	return redis.Int(mp.Do(DefaultPool,"SUNIONSTORE", args...))
 }
 
-//返回key对应的set的所有元素，结果是无序的
-//@author sam@2020-08-07 16:07:49
-func (mp *MultiPool) SMembers(key string) ([]string, error) {
-	return redis.Strings(mp.Do(DefaultPool,"SMEMBERS", key))
-}
+//15.迭代集合中的元素: SSCAN key cursor [MATCH pattern] [COUNT count]
+
+
+
 
 //-----------------------ZSet有序集合类型操作-------------------------------------------------------------------------
 
-//添加元素到集合，元素在集合中存在则更新对应的权重值score
-//zadd   key   score   member
+//1.向有序集合添加一个或多个成员，或者更新已存在成员的分数
 //@author sam@2020-08-07 16:13:40
 func (mp *MultiPool) ZAdd(key string, pairs ...interface{}) (int, error) {
 	args := make([]interface{}, 0)
@@ -367,8 +429,67 @@ func (mp *MultiPool) ZAdd(key string, pairs ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"ZADD", args...))
 }
 
-//删除指定元素，1表示成功，如果元素不存在返回0
-//zrem    key     member
+//2.获取有序集合的成员数
+//@author sam@2020-08-07 16:17:32
+func (mp *MultiPool) ZCard(key string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"ZCARD", key))
+}
+
+//3.计算在有序集合中指定区间分数的成员数
+func (mp *MultiPool) ZCount(key string, min, max interface{}) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"ZCOUNT", key, min, max))
+}
+
+//4.有序集合中对指定成员的分数加上增量 increment
+//@author sam@2020-08-07 16:19:08
+func (mp *MultiPool) ZIncrBy(key string, increment float64, member string) (float64, error) {
+	return redis.Float64(mp.Do(DefaultPool,"ZINCRBY", key, increment, member))
+}
+
+//5.计算给定的一个或多个有序集的交集并将结果集存储在新的有序集合 key 中
+//@author sam@2020-08-08 10:19:02
+func (mp *MultiPool) ZInterStore(destination string, nkeys int, params ...interface{}) (int, error) {
+	args := make([]interface{}, 0)
+	args = append(args, destination)
+	args = append(args, nkeys)
+	args = append(args, params...)
+	return redis.Int(mp.Do(DefaultPool,"ZINTERSTORE", args...))
+}
+
+//6.在有序集合中计算指定字典区间内成员数量
+//@author sam@2020-08-08 10:23:37
+func (mp *MultiPool) ZLexCount(key, min, max string) (int, error) {
+	return redis.Int(mp.Do("DefaultPool", key, min, max))
+}
+
+//7.通过索引区间返回有序集合指定区间内的成员
+//@author sam@2020-08-07 16:20:32
+func (mp *MultiPool) ZRange(key string, start, stop int64) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"ZRANGE", key, start, stop))
+}
+
+
+
+//8.通过字典区间返回有序集合的成员
+//@author sam@2020-08-08 10:41:55
+func (mp *MultiPool) ZRangeByLex(key, min, max string, offset, count int64) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"ZRANGEBYLEX", key, min, max, "LIMIT", offset, count))
+}
+
+//9.通过分数返回有序集合指定区间内的成员
+//@author sam@2020-08-08 10:45:41
+func (mp *MultiPool) ZRangeByScore(key, min, max interface{}, offset, count int64) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"ZRANGEBYSCORE", key, min, max, "LIMIT", offset, count))
+}
+
+
+//10.返回有序集合中指定成员的索引
+//@author sam@2020-08-07 16:23:17
+func (mp *MultiPool) ZRank(key, member string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"ZRANK", key, member))
+}
+
+//11.移除有序集合中的一个或多个成员
 //@author sam@2020-08-07 16:16:30
 func (mp *MultiPool) ZRem(key string, members ...interface{}) (int, error) {
 	args := make([]interface{}, 0)
@@ -377,99 +498,66 @@ func (mp *MultiPool) ZRem(key string, members ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"ZREM", args...))
 }
 
-//返回集合中元素个数
-//@author sam@2020-08-07 16:17:32
-func (mp *MultiPool) ZCard(key string) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"ZCARD", key))
+
+//12.移除有序集合中给定的字典区间的所有成员
+//@author  sam@2020-08-08 10:51:31
+func (mp *MultiPool) ZRemRangeByLex(key, min, max string) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"ZREMRANGEBYLEX", key, min, max))
+}
+//13.移除有序集合中给定的排名区间的所有成员
+//@author sam@2020-08-08 10:52:54
+func (mp *MultiPool) ZRemRangeByRank(key string, start, stop int64) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"ZREMRANGEByRANK", key, start, stop))
 }
 
-//按照incr幅度增加对应member的权重值，返回新的权重值
-//@author sam@2020-08-07 16:19:08
-func (mp *MultiPool) ZIncrBy(key string, increment float64, member string) (float64, error) {
-	return redis.Float64(mp.Do(DefaultPool,"ZINCRBY", key, increment, member))
+//14.移除有序集合中给定的分数区间的所有成员
+func (mp *MultiPool) ZRemRangeByScore(key, min, max interface{}) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"ZREMRANGEBYSCORE", key, min, max))
 }
 
-//类似lrange操作从集合中去指定区间的元素。返回的是有序结果
-//@author sam@2020-08-07 16:20:32
-func (mp *MultiPool) ZRange(key string, start, stop int64) ([]string, error) {
-	return redis.Strings(mp.Do(DefaultPool,"ZRANGE", key, start, stop))
-}
-
-//按照权重从大到小排元素
+//15.返回有序集中指定区间内的成员，通过索引，分数从高到低
 //@author sam@2020-08-07 16:47:34
-func (rp *MultiPool) ZRevRange(key string, start, stop int64) ([]string, error) {
-	return redis.Strings(rp.Do("ZREVRANGE", key, start, stop))
+func (mp *MultiPool) ZRevRange(key string, start, stop int64) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"ZREVRANGE", key, start, stop))
 }
 
-//返回指定元素在集合中的排名（下标） 第一个元素的下标是0 ...依次类推
-//@author sam@2020-08-07 16:23:17
-func (mp *MultiPool) ZRank(key, member string) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"ZRANK", key, member))
+
+//16.返回有序集中指定分数区间内的成员，分数从高到低排序
+//@author sam@2020-08-08 10:57:14
+func (mp *MultiPool) ZRevRangeByScore(key, max, min interface{}, offset, count int64) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"ZREVRANGEBYSCORE", key, max, min, "LIMIT", offset, count))
 }
 
-//同上，但是集合中元素是按照权重从大到小排序
+
+//17.返回有序集合中指定成员的排名，有序集成员按分数值递减(从大到小)排序
 //@author sam@2020-08-07 16:26:17
 func (mp *MultiPool) ZRevRank(key, member string) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"ZREVRANK", key, member))
 }
 
-
-//返回给定元素对应的权重值score
+//18.返回有序集中，成员的分数值
 //@author sam@2020-08-07 16:28:02
 func (mp *MultiPool) ZScore(key, member string) (float64, error) {
 	return redis.Float64(mp.Do(DefaultPool,"ZSCORE", key, member))
 }
 
-//删除集合中排名在给定区间的元素    默认是从小到大的，所以删除的是权重最小的的
-//@author sam@2020-08-07 16:29:13
-func (mp *MultiPool) ZRemRangeByRank(key string, start, stop int64) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"ZREMRANGEByRANK", key, start, stop))
+//19.计算给定的一个或多个有序集的并集，并存储在新的 key 中
+//@author sam@2020-08-08 10:59:09
+func (mp *MultiPool) ZUnionStore(destination string, nkeys int, params ...interface{}) (int, error) {
+	args := make([]interface{}, 0)
+	args = append(args, destination)
+	args = append(args, nkeys)
+	args = append(args, params...)
+	return redis.Int(mp.Do(DefaultPool,"ZUNIONSTORE", args...))
 }
+
+
+//20	ZSCAN key cursor [MATCH pattern] [COUNT count]
+//迭代有序集合中的元素（包括元素成员和元素分值）
 
 //-----------------------Hash类型操作--------------------------------------------------------------------------------
 
-
-//设置hash  field为指定值，如果key不存在，则先创建
-//@author sam@2020-08-07 15:17:02
-func (mp *MultiPool) HSet(key string, field string, value interface{}) (bool, error) {
-	return redis.Bool(mp.Do(DefaultPool,"HSET", key, field, value))
-}
-
-//hmset     key    field1  value1   field2   value2
-//@author sam@2020-08-07 15:25:12
-func (mp *MultiPool) HMSet(key string, pairs ...interface{}) (bool, error) {
-	args := make([]interface{}, 0)
-	args = append(args, key)
-	args = append(args, pairs...)
-	return isOKString(redis.String(mp.Do(DefaultPool,"HMSET", args...)))
-}
-
-//获取指定的hash field
-//@author sam@2020-08-07 15:17:44
-func (mp *MultiPool) HGet(key, field string) (string, error) {
-	return redis.String(mp.Do(DefaultPool,"HGET", key, field))
-}
-//hmget     key   field1  field2 ...
-//@author sam@2020-08-07 15:28:21
-func (mp *MultiPool) HMGet(key string, fields ...interface{}) ([]interface{}, error) {
-	args := make([]interface{}, 0)
-	args = append(args, key)
-	args = append(args, fields...)
-	return redis.Values(mp.Do(DefaultPool,"HMGET", args...))
-}
-
-// 将指定的hash   field加上给定值
-//@author sam@2020-08-07 15:14:51
-func (mp *MultiPool) HIncrBy(key, field string, value int) (int, error) {
-	return redis.Int(mp.Do(DefaultPool,"HINCRBY", key, field, value))
-}
-//测试指定的field是否存在
-//@author sam@2020-08-07 15:29:02
-func (mp *MultiPool) HExists(key, field string) (bool, error) {
-	return redis.Bool(mp.Do(DefaultPool,"HEXISTS", key, field))
-}
-
-//删除指定的hash     field
+//1.删除一个或多个哈希表字段
 //@author sam@2020-08-07 15:31:09
 func (mp *MultiPool) HDel(key string, fields ...interface{}) (int, error) {
 	args := make([]interface{}, 0)
@@ -478,32 +566,91 @@ func (mp *MultiPool) HDel(key string, fields ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"HDEL", args...))
 }
 
-//返回hash的所有field和value
+//2.查看哈希表 key 中，指定的字段是否存在。
+//@author sam@2020-08-07 15:29:02
+func (mp *MultiPool) HExists(key, field string) (bool, error) {
+	return redis.Bool(mp.Do(DefaultPool,"HEXISTS", key, field))
+}
+
+//3.获取存储在哈希表中指定字段的值。
+//@author sam@2020-08-07 15:17:44
+func (mp *MultiPool) HGet(key, field string) (string, error) {
+	return redis.String(mp.Do(DefaultPool,"HGET", key, field))
+}
+
+//4.获取在哈希表中指定 key 的所有字段和值
 //@author sam@2020-08-07 15:29:36
 func (mp *MultiPool) HGetAll(key string) (map[string]string, error) {
 	return redis.StringMap(mp.Do(DefaultPool,"HGETALL", key))
 }
 
-//返回hash的所有field
+//5.为哈希表 key 中的指定字段的整数值加上增量 increment 。
+//@author sam@2020-08-07 15:14:51
+func (mp *MultiPool) HIncrBy(key, field string, value int) (int, error) {
+	return redis.Int(mp.Do(DefaultPool,"HINCRBY", key, field, value))
+}
+
+//6.为哈希表 key 中的指定字段的浮点数值加上增量 increment 。
+//@author sam@2020-08-08 11:17:54
+func (mp *MultiPool) HIncrByFloat(key, field string, value float64) (float64, error) {
+	return redis.Float64(mp.Do(DefaultPool,"HINCRBYFLOAT", key, field, value))
+}
+
+//7.获取所有哈希表中的字段	HKEYS key
 //@author sam@2020-08-07 15:30:12
 func (mp *MultiPool) HKeys(key string) ([]string, error) {
 	return redis.Strings(mp.Do(DefaultPool,"HKEYS", key))
 }
 
-//返回hash的所有value
-//@author sam@2020-08-07 15:30:12
-func (mp *MultiPool) HVals(key string) ([]string, error) {
-	return redis.Strings(mp.Do(DefaultPool,"HVALS", key))
-}
-
-//返回指定的hash的field数量
+//8.获取哈希表中字段的数量	HLEN key
 //@author sam@2020-08-07 15:30:43
 func (mp *MultiPool) HLen(key string) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"HLEN", key))
 }
+
+//9.获取所有给定字段的值
+//@author sam@2020-08-07 15:28:21
+func (mp *MultiPool) HMGet(key string, fields ...interface{}) ([]interface{}, error) {
+	args := make([]interface{}, 0)
+	args = append(args, key)
+	args = append(args, fields...)
+	return redis.Values(mp.Do(DefaultPool,"HMGET", args...))
+}
+
+//10.同时将多个 field-value (域-值)对设置到哈希表 key 中。
+//@author sam@2020-08-07 15:25:12
+func (mp *MultiPool) HMSet(key string, pairs ...interface{}) (bool, error) {
+	args := make([]interface{}, 0)
+	args = append(args, key)
+	args = append(args, pairs...)
+	return isOKString(redis.String(mp.Do(DefaultPool,"HMSET", args...)))
+}
+
+
+//11.将哈希表 key 中的字段 field 的值设为 value
+//@author sam@2020-08-07 15:17:02
+func (mp *MultiPool) HSet(key string, field string, value interface{}) (bool, error) {
+	return redis.Bool(mp.Do(DefaultPool,"HSET", key, field, value))
+}
+
+
+//12.只有在字段 field 不存在时，设置哈希表字段的值。
+//@author sam@2020-08-08 11:26:15
+func (mp *MultiPool) HSetNX(key string, field string, value interface{}) (bool, error) {
+	return redis.Bool(mp.Do(DefaultPool,"HSETNX", key, field, value))
+}
+
+//13.获取哈希表中所有值。
+//@author sam@2020-08-07 15:30:12
+func (mp *MultiPool) HVals(key string) ([]string, error) {
+	return redis.Strings(mp.Do(DefaultPool,"HVALS", key))
+}
+//14.迭代哈希表中的键值对。HSCAN key cursor [MATCH pattern] [COUNT count]
+
+
 //---------------------  HyperLogLog  (基数统计)---------------------------
 
-//添加指定元素到 HyperLogLog 中
+//1.添加指定元素到 HyperLogLog 中
 //pfadd  nodes  1
 //@author sam@2020-08-07 16:56:15
 func (mp *MultiPool) PFAdd(key string, els ...interface{}) (int, error) {
@@ -513,13 +660,13 @@ func (mp *MultiPool) PFAdd(key string, els ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"PFADD", args...))
 }
 
-//返回给定 HyperLogLog 的基数估算值
+//2.返回给定 HyperLogLog 的基数估算值
 //@author sam@2020-08-07 16:56:38
 func (mp *MultiPool) PFCount(keys ...interface{}) (int, error) {
 	return redis.Int(mp.Do(DefaultPool,"PFCOUNT", keys...))
 }
 
-//将多个 HyperLogLog 合并为一个 HyperLogLog
+//3.将多个 HyperLogLog 合并为一个 HyperLogLog
 //@author sam@2020-08-07 16:56:54
 func (mp *MultiPool) PFMerge(dest string, keys ...interface{}) (bool, error) {
 	args := make([]interface{}, 0)
@@ -527,56 +674,8 @@ func (mp *MultiPool) PFMerge(dest string, keys ...interface{}) (bool, error) {
 	args = append(args, keys...)
 	return isOKString(redis.String(mp.Do(DefaultPool,"PFMERGE", args...)))
 }
-//----------------------------- 位相关运算 --------------------------------------------
-
-//func (mp *MultiPool) BitOpAnd(destKey string, keys ...interface{}) (int, error) {
-//	args := make([]interface{}, 0)
-//	args = append(args, "AND", destKey)
-//	args = append(args, keys...)
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
-//}
-//
-//func (mp *MultiPool) BitOpOr(destKey string, keys ...interface{}) (int, error) {
-//	args := make([]interface{}, 0)
-//	args = append(args, "OR", destKey)
-//	args = append(args, keys...)
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
-//}
-//
-//func (mp *MultiPool) BitOpXor(destKey string, keys ...interface{}) (int, error) {
-//	args := make([]interface{}, 0)
-//	args = append(args, "XOR", destKey)
-//	args = append(args, keys...)
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", args...))
-//}
-//
-//func (mp *MultiPool) BitOpNot(destKey, key string) (int, error) {
-//	return redis.Int(mp.Do(DefaultPool,"BITOP", "NOT", destKey, key))
-//}
-//
-//func (mp *MultiPool) BitPos(key string, bit int64, offsets ...int64) (int, error) {
-//	switch len(offsets) {
-//	case 0:
-//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit))
-//	case 1:
-//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0]))
-//	case 2:
-//		return redis.Int(mp.Do(DefaultPool,"BITPOS", key, bit, offsets[0], offsets[1]))
-//	default:
-//		return 0, errWrongArguments
-//	}
-//}
-//
 
 
 
-func (mp *MultiPool) BitCount(key string, offsets ...int64) (int, error) {
-	switch len(offsets) {
-	case 0:
-		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key))
-	case 2:
-		return redis.Int(mp.Do(DefaultPool,"BITCOUNT", key, offsets[0], offsets[1]))
-	default:
-		return 0, errWrongArguments
-	}
-}
+
+
