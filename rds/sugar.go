@@ -388,7 +388,7 @@ func (mp *MultiPool) SPop(key string) (string, error) {
 //11.返回集合中一个或多个随机数
 //@author  sam@2020-08-08 10:00:56
 func (mp *MultiPool) SRandMember(key string) (string, error) {
-	return redis.String(mp.Do("SRANDMEMBER", key))
+	return redis.String(mp.Do(DefaultPool,"SRANDMEMBER", key))
 }
 
 //12.移除集合中一个或多个成员
