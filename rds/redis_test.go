@@ -45,6 +45,7 @@ func init() {
 //@author sam@2020-07-29 15:40:34
 
 func TestGetSet(t *testing.T) {
+	fmt.Printf("%+v\r\n",conf)
 	//创建池子
 	pools, err :=NewMultiPool(conf)
 	if err != nil {
