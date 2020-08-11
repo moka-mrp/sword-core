@@ -2,7 +2,6 @@ package logger
 
 import (
 	"bufio"
-	"fmt"
 	rotatelogs "github.com/lestrrat/go-file-rotatelogs"
 	"github.com/mattn/go-colorable"
 	"github.com/moka-mrp/sword-core/config"
@@ -83,7 +82,7 @@ func InitLog(conf config.LogConfig) (*logrus.Logger, error) {
 		//拼接输出日志位置
 		logDir, _ := filepath.Abs(conf.Dir) //这里不求绝对值也是可以的额
 		logPath := path.Join(logDir,conf.Name)+".log"  //fmt.Sprintf("%s/%s.log",dir,fileName)
-		fmt.Println(logPath)
+		//fmt.Println(logPath)
 		//判断目录是否存在，不存在创建即可
 		dir:=filepath.Dir(logPath)
 		_, err := os.Stat(dir)
@@ -148,7 +147,7 @@ func OpenNewFile(logPath string) (*os.File,error) {
 func GetRotateWriter(logPath string,name string,timePattern string,
 	maxAge time.Duration,rotationTime time.Duration) (*rotatelogs.RotateLogs, error) {
 	//创建切割writer
-	fmt.Println(logPath,name,name+timePattern)
+	//fmt.Println(logPath,name,name+timePattern)
 	writer, err := rotatelogs.New(
 		//strings.Replace(logPath,name,name+timePattern,1), // 切割后的文件名称
 		strings.Replace(logPath,".log",timePattern+".log",1), // 切割后的文件名称
