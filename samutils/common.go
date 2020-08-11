@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func P(i interface{}) {
+func P(i interface{} ) {
 	fmt.Printf("%+v\r\n",i)
 }
 

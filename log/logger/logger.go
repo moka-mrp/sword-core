@@ -2,6 +2,7 @@ package logger
 
 import (
 	"bufio"
+	"fmt"
 	rotatelogs "github.com/lestrrat/go-file-rotatelogs"
 	"github.com/mattn/go-colorable"
 	"github.com/moka-mrp/sword-core/config"
@@ -82,6 +83,7 @@ func InitLog(conf config.LogConfig) (*logrus.Logger, error) {
 		//拼接输出日志位置
 		logDir, _ := filepath.Abs(conf.Dir) //这里不求绝对值也是可以的额
 		logPath := path.Join(logDir,conf.Name)+".log"  //fmt.Sprintf("%s/%s.log",dir,fileName)
+		fmt.Println(logPath)
 		//判断目录是否存在，不存在创建即可
 		dir:=filepath.Dir(logPath)
 		_, err := os.Stat(dir)
@@ -141,12 +143,15 @@ func OpenNewFile(logPath string) (*os.File,error) {
 
 
 //设置滚动日志输出writer
+//@todo 防止name与文件路径中的文件名匹配到了
 //@author sam@2020-04-03 10:43:13
 func GetRotateWriter(logPath string,name string,timePattern string,
 	maxAge time.Duration,rotationTime time.Duration) (*rotatelogs.RotateLogs, error) {
 	//创建切割writer
+	fmt.Println(logPath,name,name+timePattern)
 	writer, err := rotatelogs.New(
-		strings.Replace(logPath,name,name+timePattern,1), // 切割后的文件名称
+		//strings.Replace(logPath,name,name+timePattern,1), // 切割后的文件名称
+		strings.Replace(logPath,".log",timePattern+".log",1), // 切割后的文件名称
 		rotatelogs.WithLinkName(logPath), // 生成软链，指向最新日志文件
 		rotatelogs.WithMaxAge(maxAge *24*time.Hour), 	// 设置最大保存时间(7天)
 		rotatelogs.WithRotationTime(rotationTime *time.Hour), // 设置日志切割时间间隔(1天)

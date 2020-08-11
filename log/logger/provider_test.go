@@ -59,7 +59,7 @@ func TestProvider(t *testing.T) {
 		Handler:  "file",
 		Level:    "debug",
 		Dir:      "./logs",
-		Name: "lumen",
+		Name: "sword",
 		EnableFileName:false,
 		EnableFuncName:false,
 	}, true)
