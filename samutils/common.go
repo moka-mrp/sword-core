@@ -5,13 +5,18 @@ import (
 	"os"
 )
 
-func P(i interface{} ) {
-	fmt.Printf("%+v\r\n",i)
+func P(i ...interface{} ) {
+	for  _,val:=range i{
+		fmt.Printf("%+v\r\n",val)
+	}
+
 }
 
 
-func Pd(i interface{}) {
-	fmt.Printf("%+v\r\n",i)
+func Pd(i ...interface{} ) {
+	for  _,val:=range i{
+		fmt.Printf("%+v\r\n",val)
+	}
 	os.Exit(0)
 }
 

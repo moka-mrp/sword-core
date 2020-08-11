@@ -3,7 +3,7 @@ package samutils
 import "testing"
 
 func TestP(t *testing.T) {
-	P("come on baby.")
+	P("one","two","three")
 	P("come on baby.")
 	P("come on baby.")
 }
@@ -11,8 +11,7 @@ func TestP(t *testing.T) {
 
 
 func TestPd(t *testing.T) {
-	Pd("come on baby.")
-	Pd("come on baby.")
+	Pd("one","two","three")
 	Pd("come on baby.")
 	Pd("come on baby.")
 }
