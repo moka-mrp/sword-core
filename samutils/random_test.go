@@ -39,9 +39,17 @@ func TestRandStringL3(t *testing.T) {
 func TestRandStringL4(t *testing.T) {
 	t.Log(RandStringL4(5))
 }
+//--------------------------------------
 
+//测试随机区间数的返回[0,3)
+//@author sam@2020-08-17 11:45:53
+func TestMtRand(t *testing.T) {
+	t.Log(MtRand(0,3))
+}
 
-
-
-
+//测试盐串的产生
+//@author sam@2020-08-17 11:48:34
+func TestGenSalt(t *testing.T) {
+	t.Log(GenSalt())
+}
 

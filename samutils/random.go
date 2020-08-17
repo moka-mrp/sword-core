@@ -105,19 +105,23 @@ func RandStringL4(n int64) string {
 }
 //--------------------------------------------------------------------------------------------------------------------
 
+//获取盐串
+//@author sam@2020-08-17 11:47:34
+func GenSalt() string {
+	return RandStringL3(8)
+}
 
 
 
 
-
-
-////产生min-max中的一个随机数，[min,max)
-//func RandInt(min, max int) int {
-//	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-//	if min > max {
-//		return max
-//	}
-//	//[0,max-min) +min   [min,max)
-//	return r.Intn(max-min) + min
-//}
+//产生min-max中的一个随机数，[min,max)
+//@author sam@2020-08-17 11:44:00
+func MtRand(min, max int) int {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	if min > max {
+		return max
+	}
+	//[0,max-min) +min   [min,max)
+	return r.Intn(max-min) + min //// Intn以int形式返回[0，n）中的非负伪随机数
+}
 
