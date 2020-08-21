@@ -1,6 +1,9 @@
 package config
 
-import "time"
+import (
+	"github.com/coreos/etcd/clientv3"
+	"time"
+)
 
 
 //-------------------  redis 相关结构体配置 -----------------------------------
@@ -48,6 +51,27 @@ type DbConfig struct {
 	Option DbOptionConfig
 }
 
+//------------------- Etcd相关结构体配置 -----------------------------------
+type EtcdConfig struct {
+	Endpoints   []string //["http://127.0.0.1:2379"]
+	Username    string // ""
+	Password    string // ""
+	DialTimeout int64 // 2 单位秒
+	ReqTimeout  int   //// etcd客户端的,请求超时时间，单位秒  之所以放在外层，是因为是通过控制上下文时间来达成效果的
+	conf clientv3.Config
+}
+
+func (e EtcdConfig) Copy() clientv3.Config {
+	 e.conf.Endpoints=e.Endpoints
+	 e.conf.Username=e.Username
+	 e.conf.Password=e.Password
+     if e.DialTimeout > 0{
+     	e.conf.DialTimeout= time.Duration(e.DialTimeout) * time.Second
+	 }
+	return e.conf
+}
+
+
 //------------------- Log相关结构体配置 -----------------------------------
 type LogConfig struct {
 	Handler  string
@@ -57,6 +81,16 @@ type LogConfig struct {
 	EnableFileName bool //日志中是否显示调用文件的名字
 	EnableFuncName bool //日志中是否显示调用的函数的名字
 }
+
+//---------------------JWTConf 签名方法配置-------------------------------------------------------------------
+//todo  algo = "HS512" 签名方式没必要配置,我们默认就采用HS512,至于对方采用什么我们完全可以分析token的Header部分是能够解析出来的
+type JwtConfig struct {
+	Secret string
+	Exp    int     //token 有效期(小时)
+	Algo   string
+}
+
+
 //------------------- Api相关结构体配置 -----------------------------------
 type ApiConfig struct {
 	Host string
