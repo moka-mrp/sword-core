@@ -2,8 +2,8 @@ package etd
 
 import (
 	"fmt"
-	"github.com/coreos/etcd/clientv3"
 	"context"
+	"github.com/coreos/etcd/clientv3"
 )
 
 //-----------------------------------------添加--------------------------------------------
@@ -18,7 +18,8 @@ func (c *Client) Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutR
 
 
 //持乐观锁进行put操作
-//Revision 是全局的版本，不针对key
+//Revision 是全局的版本，不针对key,但某个key的创建和修改的版本号也是全局版本号范畴
+//CreateRevision  是当前key创建的时候的版本号
 //ModRevision 是当前key最后一次修改的版本(针对单个key)
 //version 是某个key的修改次数递增
 //todo 比如某个key的Revision是1150,则不管接下来整体版本号是否增加了，只要对该key的修改必须持1150版本号才可以额
