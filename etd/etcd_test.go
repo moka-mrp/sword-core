@@ -3,8 +3,10 @@ package etd
 import (
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/moka-mrp/sword-core/config"
 	"testing"
+	"time"
 )
 
 
@@ -78,7 +80,8 @@ func TestGet(t *testing.T){
 }
 
 //-----------------------------------------删除----------------------------------------------
-
+//测试删除
+//@author  sam@2020-08-22 09:38:17
 func TestDelete(t *testing.T)  {
 	// 删除KV   clientv3.WithFromKey()
 	if delResp, err := client.Delete("/test/food", clientv3.WithFromKey()); err != nil {
@@ -97,5 +100,63 @@ func TestDelete(t *testing.T)  {
 }
 
 //-----------------------------------------监听----------------------------------------------
+//测试watch机制
+//@author sam@2020-08-22 09:41:51
+func  TestWatch(t *testing.T){
+
+	//1.模拟etcd中key-value的变化情况,比如我们模拟一个定时任务的变化情况
+	key:="/crontab/jobs/jb001"
+	go func() {
+		for {
+			client.Put(key, "put001")
+			time.Sleep(5 * time.Second)
+			client.Put(key, "put002")
+			time.Sleep(5 * time.Second)
+			client.Put(key, "put003")
+			time.Sleep(5 * time.Second)
+			client.Put(key, "put004")
+			time.Sleep(5 * time.Second)
+
+			client.Delete(key)
+			time.Sleep(10 * time.Second)
+			fmt.Println("------------------------")
+		}
+	}()
+	//2.先GET到当前的值，并监听后续变化
+	if getResp, err := client.Get(key); err != nil {
+		t.Error(err)
+		return
+	}else{
+		// 当前etcd集群事务ID, 单调递增的
+		watchStartRevision := getResp.Header.Revision + 1
+		// 启动监听
+		fmt.Println("从该版本向后监听:", watchStartRevision)
+		watchRespChan := client.Watch(key, clientv3.WithRev(watchStartRevision))
+		// 处理kv变化事件
+		for watchResp := range watchRespChan {
+			for _, event := range watchResp.Events {
+				switch event.Type {
+				case mvccpb.PUT:
+					fmt.Println("修改为:", string(event.Kv.Value), "CreateRevision:", event.Kv.CreateRevision,"ModRevision", event.Kv.ModRevision)
+				case mvccpb.DELETE:
+					fmt.Println("删除了","CreateRevision:", event.Kv.CreateRevision,"ModRevision", event.Kv.ModRevision)
+				}
+			}
+		}
+
+
+
+	}
+
+
+
+
+
+
+
+}
+
+
+
 //-----------------------------------------租约----------------------------------------------
 //-----------------------------------------分布式锁----------------------------------------------

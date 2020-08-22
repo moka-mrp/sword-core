@@ -72,6 +72,7 @@ func (c *Client) Delete(key string, opts ...clientv3.OpOption) (*clientv3.Delete
 //-----------------------------------------监听-----------------
 
 //监听某部分key的变化情况
+//一般监听都是长期监听的，所以context可以不单独传递
 //@author  sam@2020-08-21 17:11:57
 func (c *Client) Watch(key string, opts ...clientv3.OpOption) clientv3.WatchChan {
 	return c.Client.Watch(context.Background(), key, opts...)
