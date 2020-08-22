@@ -5,6 +5,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/moka-mrp/sword-core/config"
+	"log"
 	"testing"
 	"time"
 )
@@ -150,13 +151,61 @@ func  TestWatch(t *testing.T){
 
 
 
-
-
-
-
 }
 
-
-
 //-----------------------------------------租约----------------------------------------------
+
+func TestGrant(t *testing.T){
+	var err error
+	//1.申请一个10秒的租约   etcdctl lease grant  10
+    var leaseGrantResp *clientv3.LeaseGrantResponse
+	if leaseGrantResp, err = client.Grant(10); err != nil {
+		fmt.Println(err)
+		return
+	}
+	//2.租约续约(代码中还需要应答额)  etcdctl lease keep-alive  694d69eb2b36657f
+	if keepRespChan, err := client.KeepAlive(leaseGrantResp.ID); err != nil {
+		fmt.Println(err)
+		return
+	}else {
+		go func() {
+			for {
+				select {
+				case keepResp := <-keepRespChan:
+					if keepRespChan == nil {
+						fmt.Println("租约已经失效了")
+						goto END
+					} else { // 每秒会续租一次, 所以就会收到一次应答
+						log.Println("收到自动续租应答:", keepResp.ID)
+					}
+				}
+			}
+		END:
+		}()
+	}
+
+	//3. 使用上面申请的租约ID授权租约  etcdctl put --lease=694d69eb2b36657f  /crontab/lock/job1  ""  #
+		if putResp, err := client.Put("/crontab/lock/jb001", "locked", clientv3.WithLease(leaseGrantResp.ID)); err != nil {
+			fmt.Println(err)
+			return
+		}else{
+			fmt.Println("写入成功:", putResp.Header.Revision)
+			// 定时的看一下key过期了没有,死循环阻塞中...
+			for {
+				var getResp *clientv3.GetResponse
+				if getResp, err = client.Get("/crontab/lock/jb001"); err != nil {
+					fmt.Println(err)
+					return
+				}
+				if getResp.Count == 0 {
+					fmt.Println("kv过期了")
+					break
+				}
+				log.Println("还没过期:", getResp.Kvs)
+				time.Sleep(30 * time.Second)
+			}
+
+		}
+}
+
 //-----------------------------------------分布式锁----------------------------------------------

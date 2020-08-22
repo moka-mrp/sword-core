@@ -103,6 +103,16 @@ func (c *Client) KeepAliveOnce(id clientv3.LeaseID) (*clientv3.LeaseKeepAliveRes
 	defer cancel()
 	return c.Client.KeepAliveOnce(ctx, id)
 }
+
+
+//给该租约ID长期续租
+//@author  sam@2020-08-21 17:25:32
+func (c *Client) KeepAlive(id clientv3.LeaseID) (<-chan *clientv3.LeaseKeepAliveResponse, error) {
+	return c.Client.KeepAlive(context.TODO(), id)
+}
+
+
+
 //----------------------分布式锁--------------------------------
 
 //分布式抢锁
