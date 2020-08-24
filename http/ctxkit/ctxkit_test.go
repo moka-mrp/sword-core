@@ -1,6 +1,8 @@
 package ctxkit
 
 import (
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"testing"
 	"github.com/gin-gonic/gin"
 )
@@ -74,6 +76,25 @@ func TestGetJwtSecret(t *testing.T) {
 		t.Error("Secret miss match")
 		return
 	}
+}
+
+func TestGetJwtClaims(t *testing.T) {
+	v:=jwt.MapClaims{
+		"uin":"uin001",
+		"id":11111,
+		"id2":"11111",
+		"money":12.5,
+		"money2":"12.5",
+		"email":"sam@qq.com",
+	}
+	SetJwtClaims(c,v)
+
+	fmt.Println(GetJwtClaims(c,"uin"))
+	fmt.Println(GetJwtClaims(c,"id"))
+	fmt.Println(GetJwtClaims(c,"id2"))
+	fmt.Println(GetJwtClaims(c,"money"))
+	fmt.Println(GetJwtClaims(c,"money2"))
+	fmt.Println(GetJwtClaims(c,"email"))
 }
 
 

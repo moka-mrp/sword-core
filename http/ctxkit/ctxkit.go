@@ -2,6 +2,8 @@ package ctxkit
 
 import (
 	"context"
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,6 +16,7 @@ const (
 	SessionKey = "x-session-key"
 	Appid    = "x-appid"
 	JwtSecret = "x-jwt-secret"
+	JwtClaims = "x-jwt-claims"
 )
 
 
@@ -65,6 +68,28 @@ func GetJwtSecret(ctx context.Context) string {
 	s, _ := ctx.Value(JwtSecret).(string)
 	return s
 }
+
+func SetJwtClaims(ctx *gin.Context, value jwt.MapClaims) {
+	ctx.Set(JwtClaims, value)
+}
+
+func GetJwtClaims(ctx context.Context,key string) string {
+	claims, _ := ctx.Value(JwtClaims).(jwt.MapClaims)
+	claim:=claims[key]
+	switch claim.(type) { //类型断言
+	case string:
+		return claim.(string)
+	case int:
+		return   fmt.Sprintf("%v", claim.(int))
+		//return string(claim.(int))
+	case float64:
+		return fmt.Sprintf("%v", claim.(float64))
+		//return strconv.FormatFloat(inter.(float64), 'f', 0, 64) //保留0位小数
+	}
+	return ""
+}
+
+
 
 //------密文相关 sam@2020-06-10 08:46:52
 func SetUin(ctx *gin.Context, value string) {
