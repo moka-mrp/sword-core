@@ -1,7 +1,12 @@
 package helper
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
 )
 
 //获取依赖中注入的名字  默认的名字
@@ -62,3 +67,46 @@ func MapToArray(mp map[string]interface{}) []string {
 	}
 	return arr
 }
+
+
+
+
+//todo 想做优雅重启之类的才需要记录pid
+//将进程号写入文件,未指明进程号的，则直接获取当前的进程号写入即可
+//@author sam@2020-09-09 11:46:11
+func WritePidFile(path string, pidArgs ...int) error {
+	fd, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
+
+	var pid int
+	if len(pidArgs) > 0 {
+		pid = pidArgs[0]
+	} else {
+		pid = os.Getpid()
+	}
+	_, err = fd.WriteString(fmt.Sprintf("%d\n", pid))
+	return err
+}
+
+//读取文件的进程号
+//@author sam@2020-09-09 11:46:22
+func ReadPidFile(path string) (int, error) {
+	fd, err := os.Open(path)
+	if err != nil {
+		return -1, err
+	}
+	defer fd.Close()
+
+	buf := bufio.NewReader(fd)
+	line, err := buf.ReadString('\n')
+	if err != nil {
+		return -1, err
+	}
+	line = strings.TrimSpace(line)
+	return strconv.Atoi(line)
+}
+
+

@@ -5,9 +5,34 @@ import (
 	"github.com/moka-mrp/sword-core/command"
 	"github.com/moka-mrp/sword-core/command/examples"
 	"github.com/moka-mrp/sword-core/config"
+	"github.com/moka-mrp/sword-core/kernel/close"
+	"github.com/moka-mrp/sword-core/rds"
 	"net/http"
 	"testing"
 )
+
+
+var conf config.RedisMultiConfig
+
+func init() {
+	conf=make(config.RedisMultiConfig,2)
+	conf["default"]=config.RedisConfig{
+		Host:           "127.0.0.1",
+		Port:           6379,
+		Password:       "root",
+		DB:             0,
+		MaxIdle:        10,
+		MaxActive:       50,
+		Wait:           true,
+		IdleTimeout:    180,
+		ConnectTimeout: 3,
+		ReadTimeout:    3,
+		WriteTimeout:   3,
+	}
+
+}
+
+
 
 //----------------------------------- 测试command服务 -----------------------------------------------------------------
 
@@ -37,6 +62,14 @@ func  TestCommandServer(t *testing.T){
 //@author sam@2020-04-07 11:04:03
 func HandleFast(c *gin.Context) {
 
+	//for i:=0;i<5;i++{
+	//	time.Sleep(1 * time.Second)
+	//	fmt.Println(i)
+	//}
+	 pools:=rds.GetRedis()
+	 pools.Set("http","sam")
+     name,_:=pools.Get("http")
+
 	data:=make(map[string]interface{})
 	data["name"]="sam"
 	data["age"]=18
@@ -44,6 +77,7 @@ func HandleFast(c *gin.Context) {
 		"errcode":         0,
 		"errmsg":         "ok",
 		"data":        data,
+		"name":name,
 	})
 	c.Abort()
 
@@ -63,14 +97,22 @@ func RegisterRoute(router *gin.Engine) {
 }
 
 //测试http服务
+//todo 注意优雅重启:a.开启服务之后，记录pid  b.kill -1 pid(发送平滑重启信号) c.endless会等待所有的客户端连接结束之后重新启动的(pid已变)
 func  TestHttpServer(t *testing.T){
 
+	//注册redis服务   注入别名(string) + 对应配置  + 是否惰性加载(false)
+	err:= rds.Pr.Register(rds.SingletonMain, conf,true)
+	if err != nil {
+		return
+	}
+	//注册应用停止时调用的关闭服务
+	close.MultiRegister(rds.Pr)
+	//-----------------------
 	conf:=config.ApiConfig{
 		Host: "0.0.0.0",
 		Port: 8089,
 		Debug:true,
 	}
 	SetDebug(conf.Debug) //告之统一的服务
-
 	StartHttp(conf,RegisterRoute)
 }

@@ -10,20 +10,12 @@ import (
 
 /**
 * 优雅重启或停止
+* endless内部会打印  2020/09/09 13:48:26 8015 0.0.0.0:8089
 * @author sam@2020-07-31 17:37:26
 * @wiki https://github.com/fvbock/endless#signals
 */
 func runEngine(engine *gin.Engine, addr string) error {
-
 	server := endless.NewServer(addr, engine)
-	//如果要指明进程文件的话，可以打开备注
-	//server.BeforeBegin = func(add string) {
-	//	pid := syscall.Getpid()
-	//	if gin.Mode() != gin.ReleaseMode {
-	//		fmt.Printf("Actual pid is %d \r\n", pid)
-	//	}
-	//	WritePidFile(pidPath, pid)
-	//}
 	err := server.ListenAndServe()
 	return err
 }
@@ -40,9 +32,9 @@ func StartHttp(apiConf config.ApiConfig,registerRoute func(*gin.Engine)) error {
 	engine := gin.New()
 	registerRoute(engine)
 	addr := apiConf.Host + ":" + strconv.Itoa(apiConf.Port)
-	fmt.Printf("Start http server listening %s\r\n", addr)
 	err:=runEngine(engine, addr)
 	if err !=nil{
+		CloseService() 	//关闭启动资源
 		fmt.Println(err)
 		return err
 	}
