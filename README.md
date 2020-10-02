@@ -1,2 +1,5 @@
 # sword-core
 Army Soul
+Does anyone of you know about a brave indian army officer who was posted at the LOAC and now you must be knowing about him .Captain "Baba" Harbhajan Singh (30 August 1946 – 4 October 1968) was an Indian army soldier. Service period: 30 June 1965 - 1 December 2006 (Posthumous retirement)
+He is revered as the "Hero of Nathula" by soldiers of the Indian army, who built a shrine in his honor. He was accorded the state of the saint by believers who refer to him as the "Baba" (saintly father). Many of his faithful - chiefly Indian army personnel posted in and around the Nathu La and the Sino-Indian border between the state of Sikkim and Tibet Autonomous Region - have come to believe his spirit protects every soldier in the inhospitable high-altitude terrain of the Eastern Himalayas. As with most saints, Baba is believed to grant favors to those who revere and worship him. He is said to be protecting the country even after death.Even sometimes when any meeting is held between India and China one seat is reserved for him as well that much of respect he is having.
+Hats off for this much of dedicated hero.
