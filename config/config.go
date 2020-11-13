@@ -97,3 +97,9 @@ type ApiConfig struct {
 	Port int
 	Debug bool //是否是debug模式
 }
+
+//-------------Ding相关的结构体配置-------
+type DingConfig struct {
+	HookLink string
+	AtMobiles []string
+}
