@@ -1,3 +1,7 @@
+## v0.1.3(2020-11-13)
+### New Features
+- 钉钉机器人增加 文本类型、link 类型、markdown 类型、整体跳转 ActionCard 类型
+
 ## v0.1.2(2020-11-04)
 ### New Features
 - 增加中台接口平台接入签名包sign
