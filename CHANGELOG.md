@@ -1,3 +1,7 @@
+## v0.1.4(2020-11-27)
+### New Features
+- 增加阿里云表格存储的操作
+
 ## v0.1.3(2020-11-13)
 ### New Features
 - 钉钉机器人增加 文本类型、link 类型、markdown 类型、整体跳转 ActionCard 类型

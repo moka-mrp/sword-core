@@ -103,3 +103,15 @@ type DingConfig struct {
 	HookLink string
 	AtMobiles []string
 }
+
+//------------ OTS相关结构配置
+
+type OtsConfig struct {
+	EndPoint string
+	InstanceName string
+	AccessKeyId string
+	AccessKeySecret string
+}
+type OtsMultiConfig  map[string]OtsConfig
+
+
