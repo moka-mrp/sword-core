@@ -33,6 +33,7 @@ require (
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
+	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.3.0
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/soheilhy/cmux v0.1.4 // indirect
@@ -40,8 +41,10 @@ require (
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6 // indirect
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18 // indirect
+	go.uber.org/zap v1.13.0
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.0.3
 )
